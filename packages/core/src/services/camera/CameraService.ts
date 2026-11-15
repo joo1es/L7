@@ -62,6 +62,20 @@ export default class CameraService implements ICameraService {
     return [this.primaryViewport || this.viewport];
   }
 
+  /**
+   * 渲染/拾取需要遍历的视口列表。
+   * 仅有一个主视口时返回空数组，表示使用原有的单 pass 渲染路径（避免无谓的矩阵切换开销）；
+   * 只要存在世界副本就返回完整列表，包括“只存在一个非主视口”的情况
+   * （例如视口中心超出 ±180°，可视经度区间完全落在副本世界上）。
+   */
+  public getRenderViewports(): IViewport[] {
+    const viewports = this.getSubViewports();
+    if (viewports.length === 1 && viewports[0] === this.primaryViewport) {
+      return [];
+    }
+    return viewports;
+  }
+
   public getProjectionMatrix(): number[] {
     return this.viewport.getProjectionMatrix();
   }

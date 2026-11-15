@@ -80,4 +80,26 @@ describe('WebMercatorViewport world copies', () => {
     const subViewports = viewport.getSubViewports();
     expect(subViewports.length).toBeGreaterThanOrEqual(1);
   });
+
+  it('should keep the single non-primary copy when the view only covers one copy', () => {
+    const viewport = new Viewport();
+    viewport.syncWithMapCamera({
+      viewportWidth: 800,
+      viewportHeight: 600,
+      // 中心超出 ±180°，可视经度区间 [~230, ~370] 完全落在副本世界上
+      center: [300, 0],
+      zoom: 2,
+      pitch: 0,
+      bearing: 0,
+      renderWorldCopies: true,
+    });
+
+    const subViewports = viewport.getSubViewports() as SubViewport[];
+    expect(subViewports.length).toBe(1);
+    expect(subViewports[0]).not.toBe(viewport);
+    expect(subViewports[0].worldCopyIndex).toBe(1);
+
+    const [lng] = subViewports[0].getCenter();
+    expect(lng).toBeCloseTo(-60, 5);
+  });
 });

@@ -56,4 +56,45 @@ describe('CameraService subViewports', () => {
     service.resetViewport();
     expect(service.getCenter()).toEqual([0, 0]);
   });
+
+  it('should not require multi-pass render for a single primary viewport', () => {
+    const service = new CameraService();
+    const primary = mockViewport([0, 0]);
+    service.update(primary);
+
+    expect(service.getRenderViewports()).toEqual([]);
+  });
+
+  it('should require multi-pass render for multiple world copies', () => {
+    const service = new CameraService();
+    const primary = mockViewport([0, 0]);
+    const sub1 = mockViewport([-360, 0]);
+    const sub2 = mockViewport([360, 0]);
+    primary.subViewports = [sub1, primary, sub2];
+
+    service.update(primary);
+
+    expect(service.getRenderViewports()).toEqual([sub1, primary, sub2]);
+  });
+
+  it('should require multi-pass render for a single non-primary viewport', () => {
+    const service = new CameraService();
+    const primary = mockViewport([300, 0]);
+    const shifted = mockViewport([-60, 0]);
+    // 视口中心超出 ±180° 时，可视区间可能完全落在某个副本世界上，
+    // 此时列表里只有一个非主视口，也必须参与渲染与拾取
+    primary.subViewports = [shifted];
+
+    service.update(primary);
+
+    const renderViewports = service.getRenderViewports();
+    expect(renderViewports.length).toBe(1);
+    expect(renderViewports[0]).toBe(shifted);
+
+    service.setViewport(renderViewports[0]);
+    expect(service.getCenter()).toEqual([-60, 0]);
+
+    service.resetViewport();
+    expect(service.getCenter()).toEqual([300, 0]);
+  });
 });

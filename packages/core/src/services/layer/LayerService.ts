@@ -148,8 +148,9 @@ export default class LayerService extends EventEmitter<LayerServiceEvent> implem
       layer.prerender();
     }
 
-    const subViewports = this.cameraService.getSubViewports
-      ? this.cameraService.getSubViewports()
+    // 多世界副本渲染需要遍历的视口，单主视口时为空数组，走原有单 pass 路径
+    const renderViewports = this.cameraService.getRenderViewports
+      ? this.cameraService.getRenderViewports()
       : [];
 
     // The main render pass, all layers in a whole.
@@ -160,9 +161,9 @@ export default class LayerService extends EventEmitter<LayerServiceEvent> implem
         // 清除上一次的模版缓存
         this.renderMask(layer.masks);
       }
-      if (subViewports.length > 1) {
-        for (let i = 0; i < subViewports.length; i++) {
-          this.cameraService.setViewport?.(subViewports[i]);
+      if (renderViewports.length > 0) {
+        for (let i = 0; i < renderViewports.length; i++) {
+          this.cameraService.setViewport?.(renderViewports[i]);
           if (layer.getLayerConfig().enableMultiPassRenderer) {
             await layer.renderMultiPass();
           } else {

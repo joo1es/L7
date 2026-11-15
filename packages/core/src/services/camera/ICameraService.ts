@@ -34,6 +34,10 @@ export interface ICameraService extends Omit<IViewport, 'syncWithMapCamera'> {
   getCameraPosition(): number[];
   setViewProjectionMatrix(viewProjectionMatrix: number[] | undefined): void;
   getSubViewports?(): IViewport[];
+  /**
+   * 需要多 pass 遍历的视口列表，仅有一个主视口时返回空数组
+   */
+  getRenderViewports?(): IViewport[];
   setViewport?(viewport: IViewport): void;
   resetViewport?(): void;
 }

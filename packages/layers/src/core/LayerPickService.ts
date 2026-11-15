@@ -18,10 +18,13 @@ export default class BaseLayerPickService implements ILayerPickService {
     layerService.renderTileLayerMask(layer);
 
     const cameraService = container.cameraService;
-    const subViewports = cameraService?.getSubViewports ? cameraService.getSubViewports() : [];
-    if (subViewports && subViewports.length > 1) {
-      for (const subViewport of subViewports) {
-        cameraService.setViewport?.(subViewport);
+    // 多世界副本渲染需要遍历的视口，单主视口时为空数组，走原有单 pass 路径
+    const renderViewports = cameraService?.getRenderViewports
+      ? cameraService.getRenderViewports()
+      : [];
+    if (renderViewports.length > 0) {
+      for (const viewport of renderViewports) {
+        cameraService.setViewport?.(viewport);
         layer.renderModels({
           ispick: true,
         });
